@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Texas Hold'em Poker Analyzer</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1, h2 {
+            color: #2c3e50;
+        }
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        form {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        label {
+            font-weight: bold;
+        }
+        input, select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button {
+            padding: 12px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s;
+            grid-column: 1 / span 2;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            white-space: pre-wrap;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .tab {
+            padding: 10px 15px;
+            background-color: #e0e0e0;
+            border: none;
+            cursor: pointer;
+            margin-right: 5px;
+            border-radius: 4px 4px 0 0;
+        }
+        .tab.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .hand-examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .hand-example {
+            padding: 10px;
+            background-color: #f0f8ff;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .hand-example:hover {
+            background-color: #d0e8ff;
+        }
+        .help-text {
+            font-size: 13px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .card {
+            display: inline-block;
+            width: 50px;
+            height: 70px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            margin: 5px;
+            text-align: center;
+            line-height: 70px;
+            font-size: 24px;
+        }
+        .card.heart, .card.diamond {
+            color: red;
+        }
+        .card.club, .card.spade {
+            color: black;
+        }
+        .hide {
+            display: none;
+        }
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+    <body>
+        <div class="container">
+            <h1>Texas Hold'em Poker Analyzer</h1>
+            <p>Enter your current poker situation to get strategic advice for your unmasked.poker games.</p>
+
+            <div class="tabs">
+                <button class="tab active" data-tab="analyzer">Hand Analyzer</button>
+                <button class="tab" data-tab="reference">Quick Reference</button>
+                <button class="tab" data-tab="about">About</button>
+            </div>
+
+            <div id="analyzer" class="tab-content active">
+                <form id="poker-form">
+                    <label for="hand-input">Your hand:</label>
+                    <div>
+                        <input type="text" id="hand-input" placeholder="AhKd (Ace hearts, King diamonds)" required>
+                        <div class="help-text">Enter two cards using value (A,K,Q,J,T,9,...,2) and suit (h,d,c,s)</div>
+                    </div>
+                    
+                    <label for="position-select">Your position:</label>
+                    <select id="position-select">
+                        <option value="UTG">UTG (Under the Gun)</option>
+                        <option value="UTG+1">UTG+1</option>
+                        <option value="UTG+2">UTG+2</option>
+                        <option value="MP">MP (Middle Position)</option>
+                        <option value="MP+1">MP+1</option>
+                        <option value="HJ">HJ (Hijack)</option>
+                        <option value="CO">CO (Cutoff)</option>
+                        <option value="BTN" selected>BTN (Button)</option>
+                        <option value="SB">SB (Small Blind)</option>
+                        <option value="BB">BB (Big Blind)</option>
+                    </select>
+                    
+                    <label for="stage-select">Game stage:</label>
+                    <select id="stage-select">
+                        <option value="preflop" selected>Preflop</option>
+                        <option value="flop">Flop</option>
+                        <option value="turn">Turn</option>
+                        <option value="river">River</option>
+                    </select>
+                    
+                    <label for="board-input">Board cards:</label>
+                    <div>
+                        <input type="text" id="board-input" placeholder="AcTd2s (for flop)" disabled>
+                        <div class="help-text">For flop (3 cards), turn (4 cards), or river (5 cards)</div>
+                    </div>
+                    
+                    <label for="players-input">Number of players:</label>
+                    <input type="number" id="players-input" min="2" max="10" value="6">
+                    
+                    <label for="pot-input">Pot size (in BB):</label>
+                    <input type="number" id="pot-input" min="0" step="0.5" value="1.5">
+                    
+                    <label for="bet-input">Bet to call (in BB):</label>
+                    <input type="number" id="bet-input" min="0" step="0.5" value="1">
+                    
+                    <label for="raises-input">Raises before you:</label>
+                    <input type="number" id="raises-input" min="0" max="5" value="0">
+                    
+                    <label for="stack-input">Your stack (in BB):</label>
+                    <input type="number" id="stack-input" min="1" value="100">
+                    
+                    <button type="submit">Analyze Hand</button>
+                </form>
+                
+                <h3>Common Starting Hands</h3>
+                <div class="hand-examples">
+                    <div class="hand-example" data-hand="AhAd">AA</div>
+                    <div class="hand-example" data-hand="KhKd">KK</div>
+                    <div class="hand-example" data-hand="QhQd">QQ</div>
+                    <div class="hand-example" data-hand="AhKh">AKs</div>
+                    <div class="hand-example" data-hand="AhKd">AKo</div>
+                    <div class="hand-example" data-hand="JhJd">JJ</div>
+                    <div class="hand-example" data-hand="ThTd">TT</div>
+                    <div class="hand-example" data-hand="AhQh">AQs</div>
+                    <div class="hand-example" data-hand="AhQd">AQo</div>
+                    <div class="hand-example" data-hand="9h9d">99</div>
+                    <div class="hand-example" data-hand="8h8d">88</div>
+                    <div class="hand-example" data-hand="AhJh">AJs</div>
+                    <div class="hand-example" data-hand="KhQh">KQs</div>
+                </div>
+                
+                <div id="results" class="results">
+                    Enter your hand details and click "Analyze Hand" to get recommendations.
+                </div>
+            </div>
+
+            <div id="reference" class="tab-content">
+                <h2>Hand Rankings</h2>
+                <p>From strongest to weakest:</p>
+                <ol>
+                    <li><strong>Royal Flush</strong>: A, K, Q, J, 10 of the same suit</li>
+                    <li><strong>Straight Flush</strong>: Five consecutive cards of the same suit</li>
+                    <li><strong>Four of a Kind</strong>: Four cards of the same rank</li>
+                    <li><strong>Full House</strong>: Three of a kind plus a pair</li>
+                    <li><strong>Flush</strong>: Any five cards of the same suit</li>
+                    <li><strong>Straight</strong>: Five consecutive cards of any suit</li>
+                    <li><strong>Three of a Kind</strong>: Three cards of the same rank</li>
+                    <li><strong>Two Pair</strong>: Two pairs of different ranks</li>
+                    <li><strong>One Pair</strong>: Two cards of the same rank</li>
+                    <li><strong>High Card</strong>: Highest card in your hand</li>
+                </ol>
+                
+                <h2>Position Importance</h2>
+                <p>Positions in order from earliest to latest:</p>
+                <ol>
+                    <li><strong>UTG (Under the Gun)</strong>: First to act preflop, worst position</li>
+                    <li><strong>UTG+1, UTG+2</strong>: Early positions</li>
+                    <li><strong>MP (Middle Position), MP+1</strong>: Middle positions</li>
+                    <li><strong>HJ (Hijack)</strong>: Later middle position</li>
+                    <li><strong>CO (Cutoff)</strong>: Second-best position</li>
+                    <li><strong>BTN (Button)</strong>: Best position, acts last postflop</li>
+                    <li><strong>SB (Small Blind)</strong>: Acts first postflop</li>
+                    <li><strong>BB (Big Blind)</strong>: Acts second postflop</li>
+                </ol>
+                
+                <h2>Starting Hand Tiers</h2>
+                <ul>
+                    <li><strong>Premium</strong>: AA, KK, QQ, AKs, AKo</li>
+                    <li><strong>Strong</strong>: JJ, TT, AQs, AQo, AJs, ATs, KQs</li>
+                    <li><strong>Medium</strong>: 99, 88, AJo, ATo, KQo, KJs, KTs, QJs, QTs, JTs</li>
+                    <li><strong>Speculative</strong>: 77, 66, 55, 44, 33, 22, A9s-A2s, KJo, QJo, JTo, T9s, 98s, 87s, 76s, 65s, 54s</li>
+                    <li><strong>Weak</strong>: K9s-K2s, Q9s-Q2s, J9s-J2s, etc.</li>
+                </ul>
+                
+                <h2>Basic Strategy Tips</h2>
+                <ul>
+                    <li>Play tighter in early positions, looser in late positions</li>
+                    <li>Consider pot odds when calling with drawing hands</li>
+                    <li>Pay attention to stack-to-pot ratios (SPR)</li>
+                    <li>Be aware of player tendencies and adjust accordingly</li>
+                    <li>Position is often more important than the cards you hold</li>
+                </ul>
+            </div>
+
+            <div id="about" class="tab-content">
+                <h2>About This Tool</h2>
+                <p>This Texas Hold'em Poker Analyzer is designed to help you improve your poker skills by providing strategic advice based on your current game situation. It's particularly useful for learning and practicing on play-money sites like unmasked.poker.</p>
+                
+                <h3>How It Works</h3>
+                <p>The analyzer evaluates several key factors in poker decision-making:</p>
+                <ul>
+                    <li>Hand strength relative to position</li>
+                    <li>Pot odds and implied odds</li>
+                    <li>Stack-to-pot ratios</li>
+                    <li>Position advantage</li>
+                    <li>Previous action (raises before you)</li>
+                    <li>Number of players in the hand</li>
+                </ul>
+                
+                <h3>Usage Tips</h3>
+                <ul>
+                    <li>Keep this tool open in a separate window while playing</li>
+                    <li>Enter your hand details quickly between decisions</li>
+                    <li>Read the reasoning behind recommendations to improve your poker thinking</li>
+                    <li>Use the quick reference tab for general poker strategy reminders</li>
+                </ul>
+                
+                <p>Remember, this tool provides general strategy advice based on mathematical principles. As you improve, you'll need to incorporate reads on specific players and table dynamics into your decision-making process.</p>
+                
+                <h3>Privacy Note</h3>
+                <p>This tool runs entirely in your browser. No data is sent to any server, and your poker hands and analysis remain private to you.</p>
+            </div>
+        </div>
+
+        <footer>
+            Texas Hold'em Poker Analyzer | Created for learning purposes | Use for play money games only
+        </footer>
+        <script src="poker_analyzer.js"></script>
+        <script>
+            // When the document is loaded
+            document.addEventListener('DOMContentLoaded', function() {
+                // Tab functionality
+                const tabs = document.querySelectorAll('.tab');
+                const tabContents = document.querySelectorAll('.tab-content');
+                
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        // Remove active class from all tabs and contents
+                        tabs.forEach(t => t.classList.remove('active'));
+                        tabContents.forEach(content => content.classList.remove('active'));
+                        
+                        // Add active class to clicked tab and corresponding content
+                        tab.classList.add('active');
+                        const tabId = tab.dataset.tab;
+                        document.getElementById(tabId).classList.add('active');
+                    });
+                });
+                
+                // Form submission
+                const form = document.getElementById('poker-form');
+                const resultsDiv = document.getElementById('results');
+                
+                // Stage selection changes board input availability
+                const stageSelect = document.getElementById('stage-select');
+                const boardInput = document.getElementById('board-input');
+                
+                stageSelect.addEventListener('change', () => {
+                    boardInput.disabled = stageSelect.value === 'preflop';
+                    if (stageSelect.value === 'preflop') {
+                        boardInput.value = '';
+                    }
+                });
+                
+                // Hand examples
+                const handExamples = document.querySelectorAll('.hand-example');
+                const handInput = document.getElementById('hand-input');
+                
+                handExamples.forEach(example => {
+                    example.addEventListener('click', () => {
+                        handInput.value = example.dataset.hand;
+                    });
+                });
+                
+                // Form submission handler
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    // Get form values
+                    const hand = handInput.value;
+                    const position = document.getElementById('position-select').value;
+                    const stage = stageSelect.value;
+                    const boardText = boardInput.value;
+                    
+                    // Process board cards if needed
+                    let boardCards = [];
+                    if (stage !== 'preflop' && boardText) {
+                        // Split board into individual cards
+                        boardCards = [];
+                        for (let i = 0; i < boardText.length; i += 2) {
+                            if (i + 1 < boardText.length) {
+                                boardCards.push(boardText.substring(i, i + 2));
+                            }
+                        }
+                    }
+                    
+                    // Get other form values
+                    const players = parseInt(document.getElementById('players-input').value, 10);
+                    const pot = parseFloat(document.getElementById('pot-input').value);
+                    const betToCall = parseFloat(document.getElementById('bet-input').value);
+                    const raises = parseInt(document.getElementById('raises-input').value, 10);
+                    const stack = parseInt(document.getElementById('stack-input').value, 10);
+                    
+                    // Analyze the hand
+                    const analysis = analyzeGame(hand, position, stage, boardCards, players, pot, betToCall, raises, stack);
+                    
+                    // Display results
+                    resultsDiv.textContent = analysis;
+                });
+            });
+            </script>
+    </body>
+</html>
+
